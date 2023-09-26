@@ -36,27 +36,60 @@ namespace AccesoDatos
             Liquidacion liquidacion = new Liquidacion();
             char delimiter = ';';
             string[] matrizLiquidacion = linea.Split(delimiter);
-            establecimiento.IdentificacionEstablecimiento = (matrizLiquidacion[0]);
-            establecimiento.NombreEstablecimiento = matrizLiquidacion[1];
-            establecimiento.IngresosAnuales = Convert.ToDecimal(matrizLiquidacion[2]);
-            establecimiento.GastosAnuales = Convert.ToDecimal(matrizLiquidacion[3]);
-            establecimiento.TiempoFuncionamiento = int.Parse(matrizLiquidacion[4]);
-            establecimiento.TipoResposabilidad = Convert.ToChar(matrizLiquidacion[5]);
-            establecimiento.Ganancias = Convert.ToDecimal(matrizLiquidacion[6]);
-            establecimiento.ValorUvt = Convert.ToDecimal(matrizLiquidacion[7]);
-            establecimiento.Tarifa = Convert.ToDecimal(matrizLiquidacion[8]);
-            establecimiento.ValorImpuesto = Convert.ToDecimal(matrizLiquidacion[9]);
-            return establecimiento;
+            liquidacion.NumLiquidacion = (matrizLiquidacion[0]);
+            liquidacion.Identificacion = matrizLiquidacion[1];
+            liquidacion.TipoAfiliacion = Convert.ToChar(matrizLiquidacion[2]);
+            liquidacion.Salario = Convert.ToDecimal(matrizLiquidacion[3]);
+            liquidacion.ValorServivio= Convert.ToDecimal(matrizLiquidacion[4]);
+            liquidacion.Tarifa = Convert.ToDecimal(matrizLiquidacion[5]);
+            liquidacion.CuotaModeradora = Convert.ToDecimal(matrizLiquidacion[6]);
+            liquidacion.Fecha = Convert.ToDateTime(matrizLiquidacion[7]);
+            return liquidacion;
 
+        }
+
+        public List<Liquidacion> ConsultarTodos()
+        {
+            List<Liquidacion> liquidaciones = new List<Liquidacion>();
+            FileStream file = new FileStream(Archivo, FileMode.OpenOrCreate, FileAccess.Read);
+            StreamReader reader = new StreamReader(file);
+            string leerlinea = string.Empty;
+            while ((leerlinea = reader.ReadLine()) != null)
+            {
+
+                Liquidacion liquidacion = Map(leerlinea);
+                liquidaciones.Add(liquidacion);
+            }
+            reader.Close();
+            file.Close();
+            return liquidaciones;
+        }
+
+        private bool EsEncontrado(string liquidacionRegistrada, string liquidacionBuscada)
+        {
+            return liquidacionRegistrada == liquidacionBuscada;
+        }
+
+        public Liquidacion Buscar(string numLiquidacion)
+        {
+            List<Liquidacion> liquidaciones = ConsultarTodos();
+            foreach (var item in liquidaciones)
+            {
+                if (EsEncontrado(item.NumLiquidacion, numLiquidacion))
+                {
+                    return item;
+                }
+            }
+            return null;
         }
 
         public void Eliminar(string numLiquidacion)
         {
-            List<Liquidacion> establecimientos = new List<Liquidacion>();
+            List<Liquidacion> liquidaciones = new List<Liquidacion>();
             liquidaciones = ConsultarTodos();
             FileStream file = new FileStream(Archivo, FileMode.Create);
             file.Close();
-            foreach (var item in establecimientos)
+            foreach (var item in liquidaciones)
             {
                 if (!EsEncontrado(item.NumLiquidacion, numLiquidacion))
                 {
