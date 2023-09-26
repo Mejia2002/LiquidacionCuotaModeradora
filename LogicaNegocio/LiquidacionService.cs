@@ -215,9 +215,40 @@ namespace LogicaNegocio
             }
         }
 
+        public decimal CalcularCuotaModeradora(decimal valorServicio, decimal salario, decimal tarifa, char tipoAfiliacion)
+        {
+            throw new NotImplementedException();
+        }
 
+        public Liquidacion Buscar(string numLiquidacionBuscar)
+        {
+            throw new NotImplementedException();
+        }
 
+        public Dictionary<string, int> TotalizarLiquidacionesPorTipoAfiliacion()
+        {
+            throw new NotImplementedException();
+        }
 
+        public Dictionary<string, decimal> CalcularValorTotalPorTipoAfiliacion()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Liquidacion> FiltrarPorNombre(string palabraClave)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dictionary<string, decimal> FiltrarYTotalizarPorMesYAnio(int mes, int anio)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static List<Liquidacion> ConsultarTodos(List<Liquidacion> todasLasLiquidaciones)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class LiquidacionReponse
     {
