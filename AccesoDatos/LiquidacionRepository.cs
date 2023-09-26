@@ -36,14 +36,15 @@ namespace AccesoDatos
             Liquidacion liquidacion = new Liquidacion();
             char delimiter = ';';
             string[] matrizLiquidacion = linea.Split(delimiter);
-            liquidacion.NumLiquidacion = (matrizLiquidacion[0]);
-            liquidacion.Identificacion = matrizLiquidacion[1];
-            liquidacion.TipoAfiliacion = Convert.ToChar(matrizLiquidacion[2]);
-            liquidacion.Salario = Convert.ToDecimal(matrizLiquidacion[3]);
-            liquidacion.ValorServivio= Convert.ToDecimal(matrizLiquidacion[4]);
-            liquidacion.Tarifa = Convert.ToDecimal(matrizLiquidacion[5]);
-            liquidacion.CuotaModeradora = Convert.ToDecimal(matrizLiquidacion[6]);
-            liquidacion.Fecha = Convert.ToDateTime(matrizLiquidacion[7]);
+            liquidacion.NombrePaciente = (matrizLiquidacion[0]);
+            liquidacion.NumLiquidacion = (matrizLiquidacion[1]);
+            liquidacion.Identificacion = matrizLiquidacion[2];
+            liquidacion.TipoAfiliacion = Convert.ToChar(matrizLiquidacion[3]);
+            liquidacion.Salario = Convert.ToDecimal(matrizLiquidacion[4]);
+            liquidacion.ValorServicio = Convert.ToDecimal(matrizLiquidacion[5]);
+            liquidacion.Tarifa = Convert.ToDecimal(matrizLiquidacion[6]);
+            liquidacion.CuotaModeradora = Convert.ToDecimal(matrizLiquidacion[7]);
+            liquidacion.Fecha = Convert.ToDateTime(matrizLiquidacion[8]);
             return liquidacion;
 
         }
@@ -99,5 +100,99 @@ namespace AccesoDatos
             }
 
         }
+        public Dictionary<string, int> TotalizarLiquidacionesPorTipoAfiliacion()
+        {
+            Dictionary<string, int> totalizacion = new Dictionary<string, int>();
+            List<Liquidacion> liquidaciones = ConsultarTodos();
+
+            foreach (var liquidacion in liquidaciones)
+            {
+                string tipoAfiliacion = liquidacion.TipoAfiliacion == 'S' ? "Subsidiado" : "Contributivo";
+
+                if (totalizacion.ContainsKey(tipoAfiliacion))
+                {
+                    totalizacion[tipoAfiliacion]++;
+                }
+                else
+                {
+                    totalizacion[tipoAfiliacion] = 1;
+                }
+            }
+
+            return totalizacion;
+        }
+
+        public Dictionary<string, decimal> CalcularValorTotalPorTipoAfiliacion()
+        {
+            Dictionary<string, decimal> valorTotalPorTipoAfiliacion = new Dictionary<string, decimal>();
+            List<Liquidacion> liquidaciones = ConsultarTodos();
+
+            foreach (var liquidacion in liquidaciones)
+            {
+                string tipoAfiliacion = liquidacion.TipoAfiliacion == 'S' ? "Subsidiado" : "Contributivo";
+
+                if (valorTotalPorTipoAfiliacion.ContainsKey(tipoAfiliacion))
+                {
+                    valorTotalPorTipoAfiliacion[tipoAfiliacion] += liquidacion.CuotaModeradora;
+                }
+                else
+                {
+                    valorTotalPorTipoAfiliacion[tipoAfiliacion] = liquidacion.CuotaModeradora;
+                }
+            }
+
+            return valorTotalPorTipoAfiliacion;
+        }
+
+        public Dictionary<string, decimal> FiltrarYTotalizarPorMesYAnio(int mes, int anio)
+        {
+            Dictionary<string, decimal> resultado = new Dictionary<string, decimal>();
+            List<Liquidacion> liquidaciones = ConsultarTodos();
+
+            decimal totalCuotasModeradoras = 0;
+            int totalLiquidaciones = 0;
+
+            foreach (var liquidacion in liquidaciones)
+            {
+                if (liquidacion.Fecha.Month == mes && liquidacion.Fecha.Year == anio)
+                {
+                    string tipoAfiliacion = liquidacion.TipoAfiliacion == 'S' ? "Subsidiado" : "Contributivo";
+                    totalCuotasModeradoras += liquidacion.CuotaModeradora;
+                    totalLiquidaciones++;
+
+                    if (resultado.ContainsKey(tipoAfiliacion))
+                    {
+                        resultado[tipoAfiliacion] += liquidacion.CuotaModeradora;
+                    }
+                    else
+                    {
+                        resultado[tipoAfiliacion] = liquidacion.CuotaModeradora;
+                    }
+                }
+            }
+
+            resultado["TotalLiquidaciones"] = totalLiquidaciones;
+            resultado["TotalCuotasModeradoras"] = totalCuotasModeradoras;
+
+            return resultado;
+        }
+
+        public List<Liquidacion> FiltrarPorNombre(string palabraClave)
+        {
+            List<Liquidacion> liquidaciones = ConsultarTodos();
+            List<Liquidacion> resultado = new List<Liquidacion>();
+
+            foreach (var liquidacion in liquidaciones)
+            {
+ 
+                if (liquidacion.NombrePaciente != null && liquidacion.NombrePaciente.Contains(palabraClave))
+                {
+                    resultado.Add(liquidacion);
+                }
+            }
+
+            return resultado;
+        }
+       
     }
 }

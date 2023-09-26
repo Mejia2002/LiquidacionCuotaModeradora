@@ -16,6 +16,74 @@ namespace LogicaNegocio
         {
             liquidacionRepository = new LiquidacionRepository();
         }
+
+        decimal salarioMinimo = 1160000;
+
+
+        public decimal CalcularCuotaModeradoraContributivo(decimal valorServicio, decimal salarioDevengado)
+        {
+            decimal tarifa = 0;
+
+            if (salarioDevengado < 2 * salarioMinimo)
+            {
+                tarifa = 0.15m; // 15%
+            }
+            else if (salarioDevengado >= 2 * salarioMinimo && salarioDevengado <= 5 * salarioMinimo)
+            {
+                tarifa = 0.20m; // 20%
+            }
+            else
+            {
+                tarifa = 0.25m; // 25%
+            }
+
+            decimal cuotaModeradora = valorServicio * tarifa;
+
+            // Aplicar el tope máximo si es necesario
+            decimal topeMaximo = ObtenerTopeMaximoContributivo(salarioDevengado);
+            if (cuotaModeradora > topeMaximo)
+            {
+                cuotaModeradora = topeMaximo;
+            }
+
+            return cuotaModeradora;
+        }
+
+        private decimal ObtenerTopeMaximoContributivo(decimal salarioDevengado)
+        {
+            if (salarioDevengado < 2 * salarioMinimo)
+            {
+                return 250000; 
+            }
+            else if (salarioDevengado >= 2 * salarioMinimo && salarioDevengado <= 5 * salarioMinimo)
+            {
+                return 900000; 
+            }
+            else
+            {
+                return 1500000; 
+            }
+        }
+        public decimal CalcularCuotaModeradoraSubsidiado(decimal valorServicio)
+        {
+            decimal tarifa = 0.05m; // 5%
+
+            decimal cuotaModeradora = valorServicio * tarifa;
+
+            decimal topeMaximo = ObtenerTopeMaximoSubsidiado();
+            if (cuotaModeradora > topeMaximo)
+            {
+                cuotaModeradora = topeMaximo;
+            }
+
+            return cuotaModeradora;
+        }
+
+        private decimal ObtenerTopeMaximoSubsidiado()
+        {
+            return 200000; 
+        }
+
         public string Guardar(Liquidacion liquidacion)
         {
             try
@@ -71,7 +139,7 @@ namespace LogicaNegocio
                 }
                 else
                 {
-                    return new ConsultaLiquidacionesResponse("La Persona buscada no se encuentra Registrada");
+                    return new ConsultaLiquidacionesResponse("No hay liquidaciones registradas");
                 }
 
             }
@@ -81,6 +149,75 @@ namespace LogicaNegocio
                 return new ConsultaLiquidacionesResponse("Error de Aplicacion: " + e.Message);
             }
         }
+        public LiquidacionReponse BuscarLiquidacion(string numLiquidacion)
+        {
+            try
+            {
+                Liquidacion liquidacion = liquidacionRepository.Buscar(numLiquidacion);
+
+                if (liquidacion != null)
+                {
+                    return new LiquidacionReponse(liquidacion);
+                }
+                else
+                {
+                    return new LiquidacionReponse($"No se encontró una liquidación con número de liquidación {numLiquidacion}");
+                }
+            }
+            catch (Exception e)
+            {
+                return new LiquidacionReponse($"Error de la Aplicación: {e.Message}");
+            }
+        }
+        public Dictionary<string, decimal> CalcularValorTotalCuotasModeradorasPorTipoAfiliacion()
+        {
+            try
+            {
+                return liquidacionRepository.CalcularValorTotalPorTipoAfiliacion();
+            }
+            catch (Exception)
+            {
+          
+                return new Dictionary<string, decimal>();
+            }
+        }
+        public Dictionary<string, decimal> FiltrarYTotalizarCuotasPorMesYAnio(int mes, int anio)
+        {
+            try
+            {
+                return liquidacionRepository.FiltrarYTotalizarPorMesYAnio(mes, anio);
+            }
+            catch (Exception)
+            {
+
+                return new Dictionary<string, decimal>();
+            }
+        }
+
+        public ConsultaLiquidacionesResponse FiltrarLiquidacionesPorNombre(string palabraClave)
+        {
+            try
+            {
+                List<Liquidacion> liquidacionesFiltradas = liquidacionRepository.FiltrarPorNombre(palabraClave);
+
+                if (liquidacionesFiltradas != null && liquidacionesFiltradas.Count > 0)
+                {
+                    return new ConsultaLiquidacionesResponse(liquidacionesFiltradas);
+                }
+                else
+                {
+                    return new ConsultaLiquidacionesResponse($"No se encontraron liquidaciones con el nombre de paciente que contenga '{palabraClave}'");
+                }
+            }
+            catch (Exception e)
+            {
+                return new ConsultaLiquidacionesResponse($"Error de la Aplicación: {e.Message}");
+            }
+        }
+
+
+
+
     }
     public class LiquidacionReponse
     {
@@ -102,14 +239,14 @@ namespace LogicaNegocio
     }
     public class ConsultaLiquidacionesResponse
     {
-        public List<Persona> Personas { get; set; }
+        public List<Liquidacion> Liquidaciones { get; set; }
         public string Message { get; set; }
         public bool Encontrado { get; set; }
 
-        public ConsultaLiquidacionesResponse(List<Persona> personas)
+        public ConsultaLiquidacionesResponse(List<Liquidacion> liquidaciones)
         {
-            Personas = new List<Persona>();
-            Personas = personas;
+            Liquidaciones = new List<Liquidacion>();
+            Liquidaciones = liquidaciones;
             Encontrado = true;
         }
         public ConsultaLiquidacionesResponse(string message)
